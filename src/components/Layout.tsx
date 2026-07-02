@@ -12,12 +12,15 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-secondary">
       <header className="sticky top-0 z-10 border-b bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
-          <Link to="/" className="text-xl font-extrabold text-primary">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 sm:gap-3">
+          <Link
+            to="/"
+            className="shrink-0 whitespace-nowrap text-base font-extrabold text-primary sm:text-xl"
+          >
             📷 사진공유
           </Link>
           <form
-            className="ml-auto flex items-center gap-2"
+            className="ml-auto flex min-w-0 items-center gap-2"
             onSubmit={(e) => {
               e.preventDefault();
               nav(q ? `/?search=${encodeURIComponent(q)}` : "/");
@@ -27,21 +30,25 @@ export default function Layout() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="검색"
-              className="w-36 sm:w-56"
+              className="w-24 sm:w-56"
             />
           </form>
           {user ? (
-            <>
-              <Button onClick={() => nav("/write")}>글쓰기</Button>
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+              <Button className="shrink-0" onClick={() => nav("/write")}>
+                글쓰기
+              </Button>
               <span className="hidden text-sm text-muted-foreground sm:inline">
                 {user.nickname}
               </span>
-              <Button variant="ghost" onClick={logout}>
+              <Button variant="ghost" className="shrink-0" onClick={logout}>
                 로그아웃
               </Button>
-            </>
+            </div>
           ) : (
-            <Button onClick={() => nav("/login")}>로그인</Button>
+            <Button className="shrink-0" onClick={() => nav("/login")}>
+              로그인
+            </Button>
           )}
         </div>
       </header>
