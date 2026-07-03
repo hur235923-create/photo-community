@@ -2,6 +2,7 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Avatar from "@/components/Avatar";
 import { useState } from "react";
 
 export default function Layout() {
@@ -38,9 +39,15 @@ export default function Layout() {
               <Button className="shrink-0" onClick={() => nav("/write")}>
                 글쓰기
               </Button>
-              <span className="hidden text-sm text-muted-foreground sm:inline">
-                {user.nickname}
-              </span>
+              <Link
+                to={`/users/${user.id}`}
+                className="flex shrink-0 items-center gap-2 rounded-full py-1 pl-1 pr-2 transition hover:bg-accent"
+              >
+                <Avatar nickname={user.nickname} size="sm" />
+                <span className="hidden text-sm font-medium sm:inline">
+                  {user.nickname}
+                </span>
+              </Link>
               <Button variant="ghost" className="shrink-0" onClick={logout}>
                 로그아웃
               </Button>
