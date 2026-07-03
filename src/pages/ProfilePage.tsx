@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { fetchUserPosts, type PostCard } from "@/lib/db";
+import { fetchUserPosts, fetchCommentCount, type PostCard } from "@/lib/db";
 import { useAuth } from "@/context/AuthContext";
 import ProfileHeader from "@/components/ProfileHeader";
+import ProfileStats from "@/components/ProfileStats";
 import MasonryGallery from "@/components/MasonryGallery";
 import { toast } from "sonner";
 
@@ -13,6 +14,7 @@ export default function ProfilePage() {
   const [nickname, setNickname] = useState("");
   const [createdAt, setCreatedAt] = useState<string | null>(null);
   const [items, setItems] = useState<PostCard[]>([]);
+  const [commentCount, setCommentCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,14 +33,19 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    fetchUserPosts(id)
-      .then(setItems)
+    Promise.all([fetchUserPosts(id), fetchCommentCount(id)])
+      .then(([posts, comments]) => {
+        setItems(posts);
+        setCommentCount(comments);
+      })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false));
   }, [id]);
 
   const isOwner = !!user && user.id === id;
+  const photos = items.reduce((s, p) => s + p.image_count, 0);
   const likeTotal = items.reduce((s, p) => s + p.like_count, 0);
+  const viewTotal = items.reduce((s, p) => s + p.view_count, 0);
 
   function onDeleted(postId: string) {
     setItems((prev) => prev.filter((p) => p.id !== postId));
@@ -46,11 +53,13 @@ export default function ProfilePage() {
 
   return (
     <div>
-      <ProfileHeader
-        nickname={nickname}
-        createdAt={createdAt}
-        postCount={items.length}
-        likeTotal={likeTotal}
+      <ProfileHeader nickname={nickname} createdAt={createdAt} />
+      <ProfileStats
+        photos={photos}
+        posts={items.length}
+        comments={commentCount}
+        likes={likeTotal}
+        views={viewTotal}
       />
       <h2 className="mb-4 text-sm font-semibold text-muted-foreground">
         전시된 작품 {items.length}점

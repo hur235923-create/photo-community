@@ -3,16 +3,9 @@ import { getAvatar } from "@/lib/avatar";
 interface ProfileHeaderProps {
   nickname: string;
   createdAt: string | null;
-  postCount: number;
-  likeTotal: number;
 }
 
-export default function ProfileHeader({
-  nickname,
-  createdAt,
-  postCount,
-  likeTotal,
-}: ProfileHeaderProps) {
+export default function ProfileHeader({ nickname, createdAt }: ProfileHeaderProps) {
   const { initial, color } = getAvatar(nickname);
   const joined = createdAt
     ? `${new Date(createdAt).getFullYear()}.${String(
@@ -32,14 +25,6 @@ export default function ProfileHeader({
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-bold">{nickname}</h1>
           <p className="text-sm text-muted-foreground">{joined}</p>
-          <div className="mt-1 flex gap-4 text-sm">
-            <span>
-              <span className="font-semibold">📷 {postCount}</span> 작품
-            </span>
-            <span>
-              <span className="font-semibold">♥ {likeTotal}</span>
-            </span>
-          </div>
         </div>
       </div>
     </header>
