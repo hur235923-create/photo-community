@@ -7,6 +7,7 @@ export interface PostCard extends Post {
   cover_url: string | null;
   nickname: string;
   like_count: number;
+  image_count: number;
 }
 
 // 갤러리 목록: 카테고리/검색/페이지네이션. 총 개수와 목록을 함께 반환.
@@ -44,6 +45,7 @@ export async function fetchPosts(opts: {
       cover_url: imgs[0]?.image_url ?? null,
       nickname: row.users?.nickname ?? "알 수 없음",
       like_count: (row.likes ?? []).length,
+      image_count: (row.post_images ?? []).length,
     };
   });
   return { items, total: count ?? 0 };
@@ -154,6 +156,7 @@ export async function fetchUserPosts(userId: string): Promise<PostCard[]> {
       cover_url: imgs[0]?.image_url ?? null,
       nickname: row.users?.nickname ?? "알 수 없음",
       like_count: (row.likes ?? []).length,
+      image_count: (row.post_images ?? []).length,
     };
   });
 }
@@ -168,4 +171,14 @@ export async function deletePost(postId: string): Promise<void> {
   if (paths.length) await supabase.storage.from("post-images").remove(paths);
   const { error } = await supabase.from("posts").delete().eq("id", postId);
   if (error) throw error;
+}
+
+// 프로필 통계: 해당 사용자가 작성한 댓글 수(HEAD count 회피 위해 GET 후 길이).
+export async function fetchCommentCount(userId: string): Promise<number> {
+  const { data, error } = await supabase
+    .from("comments")
+    .select("id")
+    .eq("user_id", userId);
+  if (error) throw error;
+  return (data ?? []).length;
 }
