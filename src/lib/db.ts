@@ -136,3 +136,36 @@ export async function toggleLike(
     if (error) throw error;
   }
 }
+
+// 프로필 전시관: 해당 사용자의 전체 게시글을 PostCard로 반환(페이지네이션 없음).
+export async function fetchUserPosts(userId: string): Promise<PostCard[]> {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*, users(nickname), post_images(image_url, sort_order), likes(id)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row: any) => {
+    const imgs = (row.post_images ?? []).sort(
+      (a: any, b: any) => a.sort_order - b.sort_order
+    );
+    return {
+      ...row,
+      cover_url: imgs[0]?.image_url ?? null,
+      nickname: row.users?.nickname ?? "알 수 없음",
+      like_count: (row.likes ?? []).length,
+    };
+  });
+}
+
+// 게시글 삭제: Storage 이미지 파일 제거 후 posts 행 삭제(post_images는 CASCADE).
+export async function deletePost(postId: string): Promise<void> {
+  const { data: imgs } = await supabase
+    .from("post_images")
+    .select("storage_path")
+    .eq("post_id", postId);
+  const paths = (imgs ?? []).map((i: { storage_path: string }) => i.storage_path);
+  if (paths.length) await supabase.storage.from("post-images").remove(paths);
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+  if (error) throw error;
+}
