@@ -5,7 +5,16 @@ export interface User {
   nickname: string;
   created_at: string;
 }
-export interface Post {
+export interface ShootingInfo {
+  camera: string | null;
+  lens: string | null;
+  aperture: string | null;
+  shutter_speed: string | null;
+  iso: string | null;
+  taken_at: string | null;
+}
+
+export interface Post extends ShootingInfo {
   id: string;
   user_id: string;
   title: string;
