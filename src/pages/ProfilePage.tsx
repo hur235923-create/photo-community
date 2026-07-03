@@ -5,7 +5,7 @@ import { fetchUserPosts, fetchCommentCount, type PostCard } from "@/lib/db";
 import { useAuth } from "@/context/AuthContext";
 import ProfileHeader from "@/components/ProfileHeader";
 import ProfileStats from "@/components/ProfileStats";
-import MasonryGallery from "@/components/MasonryGallery";
+import MasonryGrid from "@/components/MasonryGrid";
 import { toast } from "sonner";
 
 export default function ProfilePage() {
@@ -71,7 +71,7 @@ export default function ProfilePage() {
           아직 전시된 작품이 없습니다.
         </p>
       ) : (
-        <MasonryGallery items={items} isOwner={isOwner} onDeleted={onDeleted} />
+        <MasonryGrid items={items} owner={isOwner} onDeleted={onDeleted} />
       )}
     </div>
   );
