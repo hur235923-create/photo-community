@@ -10,6 +10,20 @@ export interface PostCard extends Post {
   image_count: number;
 }
 
+// posts 조인 행(row) → PostCard 매핑 공용 헬퍼.
+function toPostCard(row: any): PostCard {
+  const imgs = (row.post_images ?? []).slice().sort(
+    (a: any, b: any) => a.sort_order - b.sort_order
+  );
+  return {
+    ...row,
+    cover_url: imgs[0]?.image_url ?? null,
+    nickname: row.users?.nickname ?? "알 수 없음",
+    like_count: (row.likes ?? []).length,
+    image_count: (row.post_images ?? []).length,
+  };
+}
+
 // 갤러리 목록: 카테고리/검색/페이지네이션. 총 개수와 목록을 함께 반환.
 export async function fetchPosts(opts: {
   page: number;
@@ -36,18 +50,7 @@ export async function fetchPosts(opts: {
   const { data, error, count } = await q;
   if (error) throw error;
 
-  const items: PostCard[] = (data ?? []).map((row: any) => {
-    const imgs = (row.post_images ?? []).sort(
-      (a: any, b: any) => a.sort_order - b.sort_order
-    );
-    return {
-      ...row,
-      cover_url: imgs[0]?.image_url ?? null,
-      nickname: row.users?.nickname ?? "알 수 없음",
-      like_count: (row.likes ?? []).length,
-      image_count: (row.post_images ?? []).length,
-    };
-  });
+  const items: PostCard[] = (data ?? []).map(toPostCard);
   return { items, total: count ?? 0 };
 }
 
@@ -147,18 +150,25 @@ export async function fetchUserPosts(userId: string): Promise<PostCard[]> {
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((row: any) => {
-    const imgs = (row.post_images ?? []).sort(
-      (a: any, b: any) => a.sort_order - b.sort_order
-    );
-    return {
-      ...row,
-      cover_url: imgs[0]?.image_url ?? null,
-      nickname: row.users?.nickname ?? "알 수 없음",
-      like_count: (row.likes ?? []).length,
-      image_count: (row.post_images ?? []).length,
-    };
-  });
+  return (data ?? []).map(toPostCard);
+}
+
+// Hero용: 최근 30개 중 좋아요 최다(동률 시 조회수, 그다음 최신) 1장. 없으면 null.
+export async function fetchFeaturedPost(): Promise<PostCard | null> {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*, users(nickname), post_images(image_url, sort_order), likes(id)")
+    .order("created_at", { ascending: false })
+    .limit(30);
+  if (error) throw error;
+  const items = (data ?? []).map(toPostCard);
+  if (items.length === 0) return null;
+  return items.slice().sort(
+    (a, b) =>
+      b.like_count - a.like_count ||
+      b.view_count - a.view_count ||
+      (a.created_at < b.created_at ? 1 : -1)
+  )[0];
 }
 
 // 게시글 삭제: Storage 이미지 파일 제거 후 posts 행 삭제(post_images는 CASCADE).
