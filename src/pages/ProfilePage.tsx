@@ -1,54 +1,69 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { fetchPosts, PAGE_SIZE, type PostCard } from "@/lib/db";
-import PhotoCard from "@/components/PhotoCard";
-import Pagination from "@/components/Pagination";
+import { fetchUserPosts, type PostCard } from "@/lib/db";
+import { useAuth } from "@/context/AuthContext";
+import ProfileHeader from "@/components/ProfileHeader";
+import MasonryGallery from "@/components/MasonryGallery";
 import { toast } from "sonner";
 
 export default function ProfilePage() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [nickname, setNickname] = useState("");
+  const [createdAt, setCreatedAt] = useState<string | null>(null);
   const [items, setItems] = useState<PostCard[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
     supabase
       .from("users")
-      .select("nickname")
+      .select("nickname, created_at")
       .eq("id", id)
       .maybeSingle()
-      .then(({ data }) => setNickname(data?.nickname ?? "알 수 없음"));
+      .then(({ data }) => {
+        setNickname(data?.nickname ?? "알 수 없음");
+        setCreatedAt(data?.created_at ?? null);
+      });
   }, [id]);
 
   useEffect(() => {
     if (!id) return;
-    fetchPosts({ page, userId: id })
-      .then((r) => {
-        setItems(r.items);
-        setTotal(r.total);
-      })
-      .catch((e) => toast.error(e.message));
-  }, [id, page]);
+    setLoading(true);
+    fetchUserPosts(id)
+      .then(setItems)
+      .catch((e) => toast.error(e.message))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const isOwner = !!user && user.id === id;
+  const likeTotal = items.reduce((s, p) => s + p.like_count, 0);
+
+  function onDeleted(postId: string) {
+    setItems((prev) => prev.filter((p) => p.id !== postId));
+  }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">{nickname} 님의 사진</h1>
-      <p className="text-sm text-muted-foreground">총 {total}개</p>
-      {items.length === 0 ? (
-        <p className="mt-10 text-center text-muted-foreground">
-          아직 올린 사진이 없습니다.
+      <ProfileHeader
+        nickname={nickname}
+        createdAt={createdAt}
+        postCount={items.length}
+        likeTotal={likeTotal}
+      />
+      <h2 className="mb-4 text-sm font-semibold text-muted-foreground">
+        전시된 작품 {items.length}점
+      </h2>
+      {loading ? (
+        <p className="mt-10 text-center text-muted-foreground">불러오는 중…</p>
+      ) : items.length === 0 ? (
+        <p className="mt-16 text-center text-muted-foreground">
+          아직 전시된 작품이 없습니다.
         </p>
       ) : (
-        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {items.map((p) => (
-            <PhotoCard key={p.id} post={p} />
-          ))}
-        </div>
+        <MasonryGallery items={items} isOwner={isOwner} onDeleted={onDeleted} />
       )}
-      <Pagination page={page} total={total} pageSize={PAGE_SIZE} onChange={setPage} />
     </div>
   );
 }
