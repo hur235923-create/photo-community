@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import ShootingInfoForm from "@/components/ShootingInfoForm";
+import { EMPTY_SHOOTING } from "@/lib/exif";
+import type { ShootingInfo } from "@/types/db";
 
 export default function EditPage() {
   const { id } = useParams();
@@ -18,6 +21,7 @@ export default function EditPage() {
   const [content, setContent] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0].slug);
   const [ready, setReady] = useState(false);
+  const [shooting, setShooting] = useState<ShootingInfo>(EMPTY_SHOOTING);
 
   useEffect(() => {
     if (!id) return;
@@ -31,6 +35,14 @@ export default function EditPage() {
       setTitle(p.title);
       setContent(p.content ?? "");
       setCategory(p.category);
+      setShooting({
+        camera: p.camera,
+        lens: p.lens,
+        aperture: p.aperture,
+        shutter_speed: p.shutter_speed,
+        iso: p.iso,
+        taken_at: p.taken_at,
+      });
       setReady(true);
     });
   }, [id, user, nav]);
@@ -44,6 +56,7 @@ export default function EditPage() {
         title,
         content,
         category,
+        ...shooting,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
@@ -84,6 +97,7 @@ export default function EditPage() {
           rows={5}
         />
       </div>
+      <ShootingInfoForm value={shooting} onChange={setShooting} />
       <Button type="submit" className="w-full">
         저장
       </Button>
