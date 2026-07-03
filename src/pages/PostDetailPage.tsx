@@ -13,6 +13,7 @@ import { getCategory } from "@/lib/category";
 import { useAuth } from "@/context/AuthContext";
 import ImageCarousel from "@/components/ImageCarousel";
 import CommentSection from "@/components/CommentSection";
+import ShootingInfoPanel from "@/components/ShootingInfoPanel";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -78,6 +79,17 @@ export default function PostDetailPage() {
         {post.nickname}
       </Link>
       <p className="mt-4 whitespace-pre-wrap text-neutral-800">{post.content}</p>
+
+      <ShootingInfoPanel
+        info={{
+          camera: post.camera,
+          lens: post.lens,
+          aperture: post.aperture,
+          shutter_speed: post.shutter_speed,
+          iso: post.iso,
+          taken_at: post.taken_at,
+        }}
+      />
 
       <div className="mt-6 flex items-center gap-2">
         <Button variant={liked ? "default" : "outline"} onClick={onLike}>
