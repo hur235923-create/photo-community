@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fetchPosts, PAGE_SIZE, type PostCard } from "@/lib/db";
-import PhotoCard from "@/components/PhotoCard";
+import MasonryGrid from "@/components/MasonryGrid";
+import Hero from "@/components/Hero";
 import CategoryFilter from "@/components/CategoryFilter";
 import Pagination from "@/components/Pagination";
 import { toast } from "sonner";
@@ -33,25 +34,26 @@ export default function GalleryPage() {
     setParams(p);
   }
 
+  const showHero = !category && !search && page === 1;
+
   return (
     <div>
-      <CategoryFilter
-        active={category}
-        onChange={(slug) => update({ category: slug, page: "1" })}
-      />
-      {search && (
-        <p className="mt-3 text-sm text-muted-foreground">"{search}" 검색 결과</p>
-      )}
+      {showHero && <Hero />}
+      <div className="mb-6 flex flex-col gap-4">
+        <h1 className="text-xl font-bold tracking-tight">
+          {search ? `"${search}" 검색 결과` : "전체 작품"}
+        </h1>
+        <CategoryFilter
+          active={category}
+          onChange={(slug) => update({ category: slug, page: "1" })}
+        />
+      </div>
       {loading ? (
         <p className="mt-10 text-center text-muted-foreground">불러오는 중…</p>
       ) : items.length === 0 ? (
-        <p className="mt-10 text-center text-muted-foreground">게시글이 없습니다.</p>
+        <p className="mt-16 text-center text-muted-foreground">게시글이 없습니다.</p>
       ) : (
-        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {items.map((p) => (
-            <PhotoCard key={p.id} post={p} />
-          ))}
-        </div>
+        <MasonryGrid items={items} />
       )}
       <Pagination
         page={page}
