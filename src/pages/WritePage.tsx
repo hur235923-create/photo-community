@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { parseExif, EMPTY_SHOOTING } from "@/lib/exif";
+import ShootingInfoForm from "@/components/ShootingInfoForm";
+import type { ShootingInfo } from "@/types/db";
 
 export default function WritePage() {
   const { user } = useAuth();
@@ -17,6 +20,7 @@ export default function WritePage() {
   const [category, setCategory] = useState(CATEGORIES[0].slug);
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
+  const [shooting, setShooting] = useState<ShootingInfo>(EMPTY_SHOOTING);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,7 +31,7 @@ export default function WritePage() {
       // 1) 게시글 생성
       const { data: post, error: pErr } = await supabase
         .from("posts")
-        .insert({ user_id: user.id, title, content, category })
+        .insert({ user_id: user.id, title, content, category, ...shooting })
         .select()
         .single();
       if (pErr) throw pErr;
@@ -70,7 +74,11 @@ export default function WritePage() {
           type="file"
           accept="image/*"
           multiple
-          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+          onChange={async (e) => {
+            const picked = Array.from(e.target.files ?? []);
+            setFiles(picked);
+            if (picked[0]) setShooting(await parseExif(picked[0]));
+          }}
         />
         {files.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
@@ -111,6 +119,7 @@ export default function WritePage() {
           rows={5}
         />
       </div>
+      <ShootingInfoForm value={shooting} onChange={setShooting} />
       <Button type="submit" disabled={busy} className="w-full">
         {busy ? "등록 중…" : "등록"}
       </Button>
