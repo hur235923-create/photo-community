@@ -6,8 +6,8 @@ import {
   fetchLikes,
   toggleLike,
   incrementView,
+  deletePost,
 } from "@/lib/db";
-import { supabase } from "@/lib/supabase";
 import type { Post, PostImage } from "@/types/db";
 import { getCategory } from "@/lib/category";
 import { useAuth } from "@/context/AuthContext";
@@ -50,11 +50,13 @@ export default function PostDetailPage() {
 
   async function onDelete() {
     if (!id || !confirm("삭제하시겠습니까?")) return;
-    const paths = images.map((i) => i.storage_path);
-    if (paths.length) await supabase.storage.from("post-images").remove(paths);
-    await supabase.from("posts").delete().eq("id", id);
-    toast.success("삭제되었습니다.");
-    nav("/");
+    try {
+      await deletePost(id);
+      toast.success("삭제되었습니다.");
+      nav("/");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "삭제 실패");
+    }
   }
 
   return (
