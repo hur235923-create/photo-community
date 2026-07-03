@@ -15,6 +15,7 @@ import ImageCarousel from "@/components/ImageCarousel";
 import CommentSection from "@/components/CommentSection";
 import ShootingInfoPanel from "@/components/ShootingInfoPanel";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export default function PostDetailPage() {
@@ -61,53 +62,67 @@ export default function PostDetailPage() {
   }
 
   return (
-    <article className="mx-auto max-w-3xl">
-      <ImageCarousel images={images} />
-      <div className="mt-4 flex items-center gap-2">
-        {cat && (
-          <span
-            className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-            style={{ backgroundColor: cat.color }}
+    <article className="mx-auto max-w-5xl">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ImageCarousel images={images} />
+          <h1 className="mt-6 text-3xl font-extrabold tracking-tight">{post.title}</h1>
+          <Link
+            to={`/users/${post.user_id}`}
+            className="mt-1 inline-block text-sm text-muted-foreground hover:text-foreground"
           >
-            {cat.emoji} {cat.label}
-          </span>
-        )}
-        <span className="text-sm text-muted-foreground">조회 {post.view_count}</span>
-      </div>
-      <h1 className="mt-2 text-2xl font-bold">{post.title}</h1>
-      <Link to={`/users/${post.user_id}`} className="text-sm text-primary">
-        {post.nickname}
-      </Link>
-      <p className="mt-4 whitespace-pre-wrap text-neutral-800">{post.content}</p>
+            {post.nickname}
+          </Link>
+          <p className="mt-4 whitespace-pre-wrap leading-relaxed text-foreground/90">
+            {post.content}
+          </p>
 
-      <ShootingInfoPanel
-        info={{
-          camera: post.camera,
-          lens: post.lens,
-          aperture: post.aperture,
-          shutter_speed: post.shutter_speed,
-          iso: post.iso,
-          taken_at: post.taken_at,
-        }}
-      />
-
-      <div className="mt-6 flex items-center gap-2">
-        <Button variant={liked ? "default" : "outline"} onClick={onLike}>
-          ♥ 좋아요 {likes.length}
-        </Button>
-        {isOwner && (
-          <>
-            <Button variant="outline" onClick={() => nav(`/posts/${post.id}/edit`)}>
-              수정
+          <div className="mt-6 flex items-center gap-2">
+            <Button
+              variant={liked ? "default" : "outline"}
+              className={liked ? "bg-destructive hover:bg-destructive/90" : ""}
+              onClick={onLike}
+            >
+              ♥ 좋아요 {likes.length}
             </Button>
-            <Button variant="ghost" onClick={onDelete}>
-              삭제
-            </Button>
-          </>
-        )}
-      </div>
+            {isOwner && (
+              <>
+                <Button variant="outline" onClick={() => nav(`/posts/${post.id}/edit`)}>
+                  수정
+                </Button>
+                <Button variant="ghost" onClick={onDelete}>
+                  삭제
+                </Button>
+              </>
+            )}
+          </div>
 
-      <CommentSection postId={post.id} />
+          <CommentSection postId={post.id} />
+        </div>
+
+        <aside className="lg:col-span-1">
+          <div className="space-y-4 lg:sticky lg:top-20">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {cat && (
+                <Badge className="text-white" style={{ backgroundColor: cat.color }}>
+                  {cat.emoji} {cat.label}
+                </Badge>
+              )}
+              <span>👁 {post.view_count}</span>
+            </div>
+            <ShootingInfoPanel
+              info={{
+                camera: post.camera,
+                lens: post.lens,
+                aperture: post.aperture,
+                shutter_speed: post.shutter_speed,
+                iso: post.iso,
+                taken_at: post.taken_at,
+              }}
+            />
+          </div>
+        </aside>
+      </div>
     </article>
   );
 }

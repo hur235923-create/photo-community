@@ -14,7 +14,7 @@ export default function ShootingInfoPanel({ info }: { info: ShootingInfo }) {
   if (rows.length === 0) return null; // 전부 비면 패널 숨김
 
   return (
-    <section className="mt-6 rounded-xl border bg-muted/30 p-4">
+    <section className="rounded-xl border bg-muted/30 p-4">
       <h2 className="mb-3 text-sm font-semibold text-muted-foreground">촬영 정보</h2>
       <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
         {rows.map((r) => (
